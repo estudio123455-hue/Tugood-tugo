@@ -35,7 +35,8 @@ const AuthForm = ({ isLogin = true }) => {
     
     try {
       // Primero, solicitar el código OTP
-      const response = await fetch('http://localhost:5000/api/otp/request', {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${apiUrl}/api/auth/otp/request`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -49,7 +50,7 @@ const AuthForm = ({ isLogin = true }) => {
         toast.success('Código de verificación enviado a tu correo');
         setShowOtpVerification(true);
       } else {
-        toast.error(data.message || 'Error al enviar el código de verificación');
+        throw new Error(data.message || 'Error al enviar el código de verificación');
       }
     } catch (error) {
       console.error('Error al enviar el código de verificación:', error);

@@ -28,27 +28,40 @@ app.use(helmet());
 app.use(compression());
 
 // CORS configuration
+const allowedOrigins = [
+  'http://localhost:3000', 
+  'http://127.0.0.1:3000', 
+  'http://10.215.186.158:3000',
+  'https://tugood-tugo.vercel.app',
+  'https://tugood-tugo-frontend.vercel.app',
+  'https://tugood-tugo-backend.vercel.app'
+];
+
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://10.215.186.158:3000'],
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
   optionsSuccessStatus: 200
 }));
 
 // Handle preflight requests explicitly
-app.options('*', (req, res) => {
-  const origin = req.headers.origin;
-  const allowedOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://10.215.186.158:3000'];
-  
-  if (allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-  }
-  
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.sendStatus(200);
-});
+app.options('*', cors({
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
+  credentials: true,
+  optionsSuccessStatus: 200
+}));
 
 // Rate limiting
 const apiLimiter = rateLimit({
@@ -255,6 +268,9 @@ const startServer = async () => {
     throw error;
   }
 };
+
+// Export the Express API for Vercel
+module.exports = app;
 
 // Iniciar el servidor si este archivo se ejecuta directamente
 if (import.meta.url === `file://${process.argv[1]}`) {
