@@ -11,7 +11,8 @@
     "dev:full": "concurrently \"npm start\" \"cd backend && npm run dev\"",
     "vercel-build": "node vercel-build.js",
     "vercel-dev": "node vercel-build.js",
-    "preview": "serve -s build -l 3000"
+    "preview": "serve -s build -l 3000",
+    "heroku-postbuild": "npm install && npm run build && cd backend && npm install && cd .."
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
