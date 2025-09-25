@@ -304,7 +304,6 @@ const LoginScreen = ({ onLogin }) => {
           {/* Email */}
           <div className="form-group">
             <div className="input-wrapper">
-              <span className="input-icon-emoji">📧</span>
               <input
                 type="email"
                 name="email"
@@ -325,7 +324,6 @@ const LoginScreen = ({ onLogin }) => {
           {/* Password */}
           <div className="form-group">
             <div className="input-wrapper">
-              <span className="input-icon-emoji">🔒</span>
               <input
                 type={showPassword ? 'text' : 'password'}
                 name="password"
