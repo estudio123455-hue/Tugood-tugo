@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Eye, EyeOff } from 'lucide-react';
+// import { Mail, Eye, EyeOff } from 'lucide-react';
 import SocialLoginButtons from '../components/SocialLoginButtons';
 import '../styles/WelcomeScreen.css';
 
@@ -93,39 +93,27 @@ const WelcomeScreen = ({ onLogin }) => {
             )}
             
             <div className="form-group">
-              <div className="input-with-icon">
-                <Mail className="input-icon" size={20} />
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Correo electrónico"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="input input-with-icon-padding"
-                  required
-                />
-              </div>
+              <input
+                type="email"
+                name="email"
+                placeholder="Correo electrónico"
+                value={formData.email}
+                onChange={handleInputChange}
+                className="input"
+                required
+              />
             </div>
 
             <div className="form-group">
-              <div className="input-with-icon">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  placeholder="Contraseña"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className="input input-with-icon-padding"
-                  required
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                placeholder="Contraseña"
+                value={formData.password}
+                onChange={handleInputChange}
+                className="input"
+                required
+              />
             </div>
 
             <button 
