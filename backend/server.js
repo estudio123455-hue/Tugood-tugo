@@ -75,6 +75,7 @@ const attachRedis = (req, res, next) => {
 import { testConnection } from './config/database.js';
 
 // Importar rutas
+import otpRoutes from './routes/otpRoutes.js';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
 import comercioRoutes from './routes/comercios.js';
@@ -129,15 +130,21 @@ const apiLimiter = rateLimit({
 
 // Aplicar rate limiter a todas las rutas
 app.use(apiLimiter);
-
 // Logging
 if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'));
 }
 
-// Parse JSON bodies
+// Configuración de middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true
+}));
+
+// Rutas de la API
+app.use('/api/otp', otpRoutes);
 
 // Test database connection
 app.get('/api/health', async (req, res) => {
@@ -146,7 +153,6 @@ app.get('/api/health', async (req, res) => {
     res.json({
       status: 'ok',
       message: 'Conexión a la base de datos exitosa',
-      timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       environment: process.env.NODE_ENV
     });
