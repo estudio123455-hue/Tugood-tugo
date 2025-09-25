@@ -19,38 +19,13 @@
       "dest": "/backend/server.js"
     },
     {
-      "src": "^/static/(.*)",
-      "dest": "/static/$1"
-    },
-    {
-      "src": "^/favicon.ico",
-      "dest": "/favicon.ico"
-    },
-    {
-      "src": "^/manifest.json",
-      "dest": "/manifest.json"
-    },
-    {
-      "src": "^/logo192.png",
-      "dest": "/logo192.png"
-    },
-    {
-      "src": "^/logo512.png",
-      "dest": "/logo512.png"
-    },
-    {
-      "src": "^/(.*)",
+      "src": "/(.*)",
       "dest": "/index.html"
     }
   ],
-  "buildCommand": "npm run vercel-build",
-  "installCommand": "npm install --prefer-offline --no-audit",
+  "buildCommand": "node vercel-build.js",
+  "installCommand": "echo 'Skipping install, will handle in build script'",
   "env": {
     "NODE_ENV": "production"
-  },
-  "build": {
-    "env": {
-      "NODE_ENV": "production"
-    }
   }
 }

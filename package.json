@@ -12,7 +12,8 @@
     "vercel-build": "node vercel-build.js",
     "vercel-dev": "node vercel-build.js",
     "preview": "serve -s build -l 3000",
-    "heroku-postbuild": "npm install && npm run build && cd backend && npm install && cd .."
+    "heroku-postbuild": "npm install --legacy-peer-deps && npm run build && cd backend && npm install --legacy-peer-deps && cd ..",
+    "postinstall": "cd backend && npm install --legacy-peer-deps"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
