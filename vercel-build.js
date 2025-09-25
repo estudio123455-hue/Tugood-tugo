@@ -85,6 +85,13 @@ const build = async () => {
       throw new Error('Failed to install frontend dependencies');
     }
     
+    // Explicitly install react-is to ensure it's available
+    console.log('Ensuring react-is is installed...');
+    const reactIsInstall = runCommand('npm', ['install', 'react-is@latest', '--save'], rootDir);
+    if (!reactIsInstall.success) {
+      throw new Error('Failed to install react-is');
+    }
+    
     // Fix permissions for frontend node_modules
     fixPermissions(rootDir);
 
