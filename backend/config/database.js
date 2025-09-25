@@ -1,81 +1,40 @@
-require('dotenv').config();
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-// Use SQLite for development if PostgreSQL is not available
-const useSQLite = process.env.USE_SQLITE === 'true' || !process.env.DATABASE_URL;
+dotenv.config();
 
-let dbModule;
+// Importar el módulo de SQLite
+const sqliteModule = await import('./database-sqlite.js');
 
-if (useSQLite) {
-  console.log('🔄 Usando SQLite para desarrollo');
-  dbModule = require('./database-sqlite');
-} else {
-  console.log('🔄 Usando PostgreSQL');
-  const { Pool } = require('pg');
-
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL || `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-    max: 20,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
-  });
-
-  dbModule = {
-    query: async (text, params) => {
-      const client = await pool.connect();
-      try {
-        const result = await client.query(text, params);
-        return result;
-      } finally {
-        client.release();
-      }
-    },
-
-    transaction: async (callback) => {
-      const client = await pool.connect();
-      try {
-        await client.query('BEGIN');
-        const result = await callback(client);
-        await client.query('COMMIT');
-        return result;
-      } catch (error) {
-        await client.query('ROLLBACK');
-        throw error;
-      } finally {
-        client.release();
-      }
-    },
-
-    testConnection: async () => {
-      try {
-        const result = await pool.query('SELECT NOW()');
-        return result.rows[0];
-      } catch (error) {
-        throw error;
-      }
-    }
-  };
-}
+// Configuración de la base de datos SQLite
+const dbModule = {
+  query: (text, params) => sqliteModule.query(text, params),
+  transaction: (callback) => sqliteModule.transaction(callback),
+  testConnection: () => sqliteModule.testConnection()
+};
 
 // Función para probar la conexión
 const testConnection = async () => {
   try {
     const result = await dbModule.testConnection();
-    console.log('✅ Conexión a base de datos exitosa');
-    if (result.now) {
-      console.log('🕐 Hora del servidor:', result.now);
-    } else if (result.test) {
+    console.log('✅ Conexión a SQLite exitosa');
+    if (result && result.test) {
       console.log('🕐 Test de conexión exitoso');
     }
     return true;
   } catch (error) {
-    console.error('❌ Error conectando a la base de datos:', error.message);
+    console.error('❌ Error conectando a la base de datos SQLite:', error.message);
     console.error('❌ No se pudo conectar a la base de datos');
     return false;
   }
 };
 
-module.exports = {
+export const query = dbModule.query;
+export const transaction = dbModule.transaction;
+export { testConnection };
+
+export default {
   query: dbModule.query,
   transaction: dbModule.transaction,
   testConnection

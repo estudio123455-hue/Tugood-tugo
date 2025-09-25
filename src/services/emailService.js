@@ -361,3 +361,5 @@ export const EMAIL_TEMPLATES = {
     `
   }
 };
+
+// Exportar las funciones principales

@@ -5,9 +5,12 @@ import compression from 'compression';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
-import { createClient } from 'redis';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import { testConnection } from './config/database.js';
+// Importar rutas de la API
+import apiRoutes from './src/routes/api.js';
+import fs from 'fs';
 
 dotenv.config();
 
@@ -15,75 +18,7 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Configuración de Redis para Upstash REST API
-let redisClient;
 
-if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-  console.log('🔌 Usando Upstash REST API');
-  
-  // Usar @upstash/redis para la conexión REST
-  const { Redis } = await import('@upstash/redis');
-  
-  redisClient = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN,
-  });
-  
-  // Probar la conexión
-  try {
-    await redisClient.ping();
-    console.log('🚀 Conectado a Upstash Redis (REST API)');
-  } catch (error) {
-    console.error('Error conectando a Upstash Redis:', error);
-  }
-} else if (process.env.REDIS_URL) {
-  // Mantener compatibilidad con conexión directa a Redis
-  console.log('🔌 Usando conexión directa a Redis');
-  redisClient = createClient({
-    url: process.env.REDIS_URL,
-    ...(process.env.REDIS_URL.startsWith('rediss://') && {
-      socket: {
-        tls: true,
-        rejectUnauthorized: false
-      }
-    })
-  });
-  
-  redisClient.on('error', (err) => {
-    console.error('Redis error:', err);
-  });
-  
-  redisClient.on('connect', () => {
-    console.log('🚀 Conectado a Redis');
-  });
-} else {
-  console.error('❌ No se encontró configuración de Redis');
-}
-
-// Hacer redisClient accesible en todas las rutas y módulos
-const attachRedis = (req, res, next) => {
-  // Adjuntar a la solicitud para usar en las rutas
-  req.redis = redisClient;
-  
-  // Hacerlo disponible globalmente para los servicios
-  global.redisClient = redisClient;
-  
-  next();
-};
-
-// Importar rutas dinámicamente para soportar módulos ES6
-import { testConnection } from './config/database.js';
-
-// Importar rutas
-import otpRoutes from './routes/otpRoutes.js';
-import authRoutes from './routes/auth.js';
-import userRoutes from './routes/users.js';
-import comercioRoutes from './routes/comercios.js';
-import packRoutes from './routes/packs.js';
-import pedidoRoutes from './routes/pedidos.js';
-import slotRoutes from './routes/slots.js';
-import pagoRoutes from './routes/pagos.js';
-import otpRoutes from './routes/otpRoutes.js'; // Rutas de OTP
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -144,65 +79,80 @@ app.use(cors({
 }));
 
 // Rutas de la API
-app.use('/api/otp', otpRoutes);
+if (fs.existsSync('./src/routes/api.js')) {
+  app.use('/api', apiRoutes);
+}
 
-// Test database connection
+// Health check endpoint
 app.get('/api/health', async (req, res) => {
   try {
     await testConnection();
     res.json({
       status: 'ok',
-      message: 'Conexión a la base de datos exitosa',
+      message: 'Servidor funcionando correctamente',
       uptime: process.uptime(),
-      environment: process.env.NODE_ENV
+      environment: process.env.NODE_ENV,
+      timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error('Error de conexión a la base de datos:', error);
+    console.error('Error en el health check:', error);
     res.status(500).json({
       status: 'error',
-      message: 'Error de conexión a la base de datos',
+      message: 'Error en el servidor',
       error: error.message
     });
   }
 });
 
-// Conectar a Redis antes de iniciar el servidor
-const connectRedis = async () => {
+
+// Inicializar la aplicación
+async function initializeApp() {
   try {
-    await redisClient.connect();
-    console.log('✅ Redis conectado exitosamente');
+    
+    // Ruta de prueba
+    app.get('/api/health', (req, res) => {
+      res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+      });
+    });
+    
+    // Ruta raíz
+    app.get('/', (req, res) => {
+      res.send('¡Bienvenido a la API de TuGood TuGo!');
+    });
+    
+    // Manejador de errores global
+    app.use((err, req, res, next) => {
+      console.error('❌ Error no manejado:', err);
+      res.status(500).json({
+        status: 'error',
+        message: 'Error interno del servidor',
+        error: process.env.NODE_ENV === 'development' ? err.message : undefined
+      });
+    });
+    
+    // Iniciar el servidor
+    const PORT = process.env.PORT || 5000;
+    return new Promise((resolve, reject) => {
+      const server = app.listen(PORT, () => {
+        console.log(`🚀 Servidor ejecutándose en el puerto ${PORT}`);
+        console.log(`🌐 Entorno: ${process.env.NODE_ENV || 'development'}`);
+        console.log(`📡 URL: http://localhost:${PORT}`);
+        console.log(`🔄 Ruta de salud: http://localhost:${PORT}/api/health`);
+        resolve(server);
+      });
+      
+      server.on('error', (error) => {
+        console.error('❌ Error del servidor:', error);
+        reject(error);
+      });
+    });
   } catch (error) {
-    console.error('❌ Error conectando a Redis:', error);
-    process.exit(1);
+    console.error('❌ Error al inicializar la aplicación:', error);
+    throw error; // Propagar el error para que sea manejado por el llamador
   }
-};
-
-// Inicializar la conexión a Redis
-connectRedis();
-
-// Middleware para adjuntar redis a las solicitudes
-app.use(attachRedis);
-
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/comercios', comercioRoutes);
-app.use('/api/packs', packRoutes);
-app.use('/api/pedidos', pedidoRoutes);
-app.use('/api/slots', slotRoutes);
-app.use('/api/pagos', pagoRoutes);
-app.use('/api/otp', otpRoutes); // Rutas de OTP
-
-// Static files (uploads)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Servir archivos estáticos del frontend en producción
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../../build')));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../build', 'index.html'));
-  });
 }
 
 // 404 handler
@@ -234,12 +184,6 @@ const gracefulShutdown = async () => {
   console.log('🛑 Apagando servidor...');
   
   try {
-    // Cerrar conexión a Redis
-    if (redisClient.isOpen) {
-      await redisClient.quit();
-      console.log('✅ Conexión a Redis cerrada');
-    }
-    
     // Cerrar el servidor
     if (server) {
       server.close(() => {
@@ -277,42 +221,70 @@ const startServer = async () => {
     console.log('✅ Conexión a la base de datos exitosa');
     
     // Start HTTP server
-    server = app.listen(PORT, '0.0.0.0', () => {
-      console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
-      console.log(`📊 Entorno: ${process.env.NODE_ENV || 'development'}`);
-    });
-    
-    // Handle server errors
-    server.on('error', (error) => {
-      if (error.syscall !== 'listen') {
-        throw error;
-      }
+    return new Promise((resolve, reject) => {
+      const httpServer = app.listen(PORT, '0.0.0.0', () => {
+        console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
+        console.log(`📊 Entorno: ${process.env.NODE_ENV || 'development'}`);
+        resolve(httpServer);
+      });
       
-      // Handle specific listen errors with friendly messages
-      switch (error.code) {
-        case 'EACCES':
-          console.error(`El puerto ${PORT} requiere privilegios elevados`);
-          process.exit(1);
-          break;
-        case 'EADDRINUSE':
-          console.error(`El puerto ${PORT} ya está en uso`);
-          process.exit(1);
-          break;
-        default:
-          throw error;
-      }
+      // Handle server errors
+      httpServer.on('error', (error) => {
+        if (error.syscall !== 'listen') {
+          reject(error);
+          return;
+        }
+        
+        // Handle specific listen errors with friendly messages
+        switch (error.code) {
+          case 'EACCES':
+            console.error(`El puerto ${PORT} requiere privilegios elevados`);
+            process.exit(1);
+            break;
+          case 'EADDRINUSE':
+            console.error(`El puerto ${PORT} ya está en uso`);
+            process.exit(1);
+            break;
+          default:
+            reject(error);
+        }
+      });
     });
-    
-    return server;
   } catch (error) {
     console.error('❌ Error al iniciar el servidor:', error);
-    process.exit(1);
+    throw error;
   }
 };
 
-// Iniciar el servidor solo si se ejecuta directamente
-if (require.main === module) {
-  startServer();
+// Iniciar el servidor si este archivo se ejecuta directamente
+if (import.meta.url === `file://${process.argv[1]}`) {
+  // Iniciar el servidor de manera síncrona
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log('\n========================================');
+    console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
+    console.log(`🌍 Entorno: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`📊 Ruta de salud: http://localhost:${PORT}/api/health`);
+    console.log('========================================\n');
+  });
+
+  // Manejar señales de terminación
+  process.on('SIGINT', () => {
+    console.log('\n🔴 Recibida señal de terminación. Cerrando servidor...');
+    server.close(() => {
+      console.log('✅ Servidor cerrado correctamente');
+      process.exit(0);
+    });
+  });
+
+  // Manejar errores no capturados
+  process.on('uncaughtException', (error) => {
+    console.error('❌ Error no capturado:', error);
+    server.close(() => process.exit(1));
+  });
+
+  process.on('unhandledRejection', (reason) => {
+    console.error('❌ Promesa rechazada no manejada:', reason);
+  });
 }
 
 // Exportar la aplicación para pruebas

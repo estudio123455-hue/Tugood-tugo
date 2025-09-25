@@ -1,11 +1,19 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+import sqlite3 from 'sqlite3';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const { verbose } = sqlite3;
+const sqlite3Verbose = verbose();
+
+// Get directory name in ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Create or connect to persistent database file
-const dbPath = path.join(__dirname, '../../tugood.db');
+const dbPath = join(dirname(dirname(__dirname)), 'tugood.db');
 console.log(`📂 Usando base de datos SQLite en: ${dbPath}`);
 
-const db = new sqlite3.Database(dbPath, (err) => {
+const db = new sqlite3Verbose.Database(dbPath, (err) => {
   if (err) {
     console.error('❌ Error creando base de datos SQLite:', err.message);
   } else {
@@ -16,9 +24,11 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
 // Initialize database schema
 function initializeSchema() {
+  console.log('🔍 Inicializando esquema de la base de datos...');
+  
   const schema = `
     -- Usuarios table
-    CREATE TABLE usuarios (
+    CREATE TABLE IF NOT EXISTS usuarios (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       email TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
@@ -31,7 +41,7 @@ function initializeSchema() {
     );
 
     -- Comercios table
-    CREATE TABLE comercios (
+    CREATE TABLE IF NOT EXISTS comercios (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       usuario_id INTEGER UNIQUE NOT NULL,
       nombre TEXT NOT NULL,
@@ -93,7 +103,7 @@ function initializeSchema() {
     );
 
     -- Pedidos table
-    CREATE TABLE pedidos (
+    CREATE TABLE IF NOT EXISTS pedidos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       usuario_id INTEGER NOT NULL,
       pack_id INTEGER NOT NULL,
@@ -107,7 +117,7 @@ function initializeSchema() {
     );
 
     -- Pagos table
-    CREATE TABLE pagos (
+    CREATE TABLE IF NOT EXISTS pagos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       pedido_id INTEGER UNIQUE NOT NULL,
       metodo TEXT NOT NULL,
@@ -153,21 +163,21 @@ function initializeSchema() {
 function insertSeedData() {
   const seedData = `
     -- Insert test users
-    INSERT INTO usuarios (email, password_hash, nombre, telefono, rol) VALUES
+    INSERT OR IGNORE INTO usuarios (email, password_hash, nombre, telefono, rol) VALUES
     ('cliente@test.com', '$2b$10$example_hash_cliente', 'Juan Cliente', '3001234567', 'cliente'),
     ('panaderia@test.com', '$2b$10$example_hash_panaderia', 'Panadería El Buen Pan', '3007654321', 'comercio'),
     ('restaurante@test.com', '$2b$10$example_hash_restaurante', 'Restaurante La Sazón', '3009876543', 'comercio'),
     ('admin@test.com', '$2b$10$example_hash_admin', 'Admin TuGood', '3001111111', 'admin');
 
     -- Insert comercios
-    INSERT INTO comercios (usuario_id, nombre, descripcion, direccion, barrio, zona_bogota, latitud, longitud, tipo_comercio, telefono, horario_apertura, horario_cierre, rating, imagen_url, verificado) VALUES
-    (2, 'Panadería El Buen Pan', 'Panadería artesanal con productos frescos', 'Calle 85 #15-20', 'Zona Rosa', 'Chapinero', 4.6709, -74.0583, 'panadería', '3007654321', '06:00', '20:00', 4.5, 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400', true),
-    (3, 'Restaurante La Sazón', 'Comida casera y corrientazos', 'Carrera 13 #45-30', 'Teusaquillo Centro', 'Teusaquillo', 4.6351, -74.0669, 'restaurante', '3009876543', '11:00', '22:00', 4.2, 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400', true);
+    INSERT OR IGNORE INTO comercios (id, usuario_id, nombre, descripcion, direccion, barrio, zona_bogota, latitud, longitud, tipo_comercio, telefono, horario_apertura, horario_cierre, rating, imagen_url, verificado) VALUES
+    (1, 2, 'Panadería El Buen Pan', 'Panadería artesanal con productos frescos', 'Calle 85 #15-20', 'Zona Rosa', 'Chapinero', 4.6709, -74.0583, 'panadería', '3007654321', '06:00', '20:00', 4.5, 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400', 1),
+    (2, 3, 'Restaurante La Sazón', 'Comida casera y corrientazos', 'Carrera 13 #45-30', 'Teusaquillo Centro', 'Teusaquillo', 4.6351, -74.0669, 'restaurante', '3009876543', '11:00', '22:00', 4.2, 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400', 1);
 
     -- Insert packs
-    INSERT INTO packs (comercio_id, titulo, descripcion, precio_original, precio_descuento, cantidad_disponible, hora_recogida_inicio, hora_recogida_fin, fecha_disponible, imagen_url, tipo_comida, tags, fecha_publicacion) VALUES
-    (1, 'Pack Sorpresa Panadería', 'Pan, pasteles y productos de panadería del día', 15000, 8000, 5, '18:00', '20:00', date('now'), 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400', 'panadería', 'pan,pasteles,dulces', datetime('now')),
-    (2, 'Corrientazo Sorpresa', 'Almuerzo completo con sopa, seco, arroz y jugo', 12000, 6000, 3, '14:00', '16:00', date('now'), 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400', 'corrientazo', 'almuerzo,casero,completo', datetime('now'));
+    INSERT OR IGNORE INTO packs (id, comercio_id, titulo, descripcion, precio_original, precio_descuento, cantidad_disponible, hora_recogida_inicio, hora_recogida_fin, fecha_disponible, imagen_url, tipo_comida, tags, fecha_publicacion, activo) VALUES
+    (1, 1, 'Pack Sorpresa Panadería', 'Pan, pasteles y productos de panadería del día', 15000, 8000, 5, '18:00', '20:00', date('now'), 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400', 'panadería', 'pan,pasteles,dulces', datetime('now'), 1),
+    (2, 2, 'Corrientazo Sorpresa', 'Almuerzo completo con sopa, seco, arroz y jugo', 12000, 6000, 3, '14:00', '16:00', date('now'), 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400', 'corrientazo', 'almuerzo,casero,completo', datetime('now'), 1);
   `;
 
   db.exec(seedData, (err) => {
@@ -238,9 +248,15 @@ function testConnection() {
   });
 }
 
-module.exports = {
-  query,
-  transaction,
-  testConnection,
+// Export the functions and db instance
+export { query };
+export { transaction };
+export { testConnection };
+
+// Export default with function expressions to avoid circular dependency
+export default {
+  query: (text, params) => query(text, params),
+  transaction: (callback) => transaction(callback),
+  testConnection: () => testConnection(),
   db
 };
