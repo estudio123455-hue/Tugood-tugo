@@ -1,7 +1,7 @@
-const OTPService = require('../services/otpService');
-const emailService = require('./emailService');
-const { RateLimiterRedis } = require('rate-limiter-flexible');
-const redis = require('../config/redis');
+import OTPService from '../services/otpService.js';
+import { sendOTPEmail } from '../../backend/src/services/emailService.js';
+import { RateLimiterRedis } from 'rate-limiter-flexible';
+import redis from '../config/redis.js';
 
 // Configuración de rate limiting
 const rateLimiter = new RateLimiterRedis({
@@ -48,17 +48,38 @@ const requestOTP = async (req, res) => {
 
     // Generar y almacenar OTP
     const otp = OTPService.generateOTP();
-    await OTPService.storeOTP(email, otp);
+    const stored = await OTPService.storeOTP(email, otp);
+    
+    if (!stored) {
+      return res.status(500).json({
+        success: false,
+        message: 'Error al generar el código de verificación. Por favor, inténtalo de nuevo.'
+      });
+    }
 
-    // Enviar OTP por correo (implementa esta función según tu proveedor de correo)
-    await emailService.sendOTPEmail(email, otp);
+      // Enviar OTP por correo
+      try {
+        const emailSent = await sendOTPEmail(email, otp);
+        if (!emailSent) {
+          return res.status(500).json({
+            success: false,
+            message: 'Error al enviar el código de verificación. Por favor, inténtalo de nuevo.'
+          });
+        }
 
-    res.json({
-      success: true,
-      message: 'Código de verificación enviado a tu correo',
-      // En producción, no devolver el OTP
-      // otp: process.env.NODE_ENV === 'development' ? otp : undefined
-    });
+        res.json({
+          success: true,
+          message: 'Código de verificación enviado a tu correo',
+          // En producción, no devolver el OTP
+          // otp: process.env.NODE_ENV === 'development' ? otp : undefined
+        });
+      } catch (emailError) {
+        console.error('Error al enviar correo:', emailError);
+        return res.status(500).json({
+          success: false,
+          message: 'Error al enviar el correo de verificación. Por favor, inténtalo de nuevo más tarde.'
+        });
+      }
   } catch (error) {
     console.error('Error en requestOTP:', error);
     res.status(500).json({
@@ -106,7 +127,4 @@ const verifyOTP = async (req, res) => {
   }
 };
 
-module.exports = {
-  requestOTP,
-  verifyOTP
-};
+export { requestOTP, verifyOTP };

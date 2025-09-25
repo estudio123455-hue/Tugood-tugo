@@ -1,17 +1,24 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
-import OTPService from '../../src/services/otpService.js';
-import emailService from '../../src/services/emailService.js';
+import OTPService from '../services/otpService.js';
+import { sendOTPEmail } from '../services/emailService.js';
 import { RateLimiterRedis } from 'rate-limiter-flexible';
 import { createClient } from 'redis';
 
 const router = express.Router();
 
 // Configuración de rate limiting para OTP
+const redisClient = createClient({
+  url: process.env.REDIS_URL || 'redis://localhost:6379'
+});
+
+// Manejar errores de conexión a Redis
+redisClient.on('error', (err) => {
+  console.error('Redis error:', err);
+});
+
 const otpRateLimiter = new RateLimiterRedis({
-  storeClient: redis.createClient({
-    url: process.env.REDIS_URL || 'redis://localhost:6379'
-  }),
+  storeClient: redisClient,
   keyPrefix: 'otp_rate_limit',
   points: 3, // Número de intentos permitidos
   duration: 3600, // Período en segundos (1 hora)
@@ -48,37 +55,61 @@ router.post(
         if (rlRejected instanceof Error) {
           throw rlRejected;
         }
-        return res.status(429).json({ 
-          success: false, 
-          message: 'Demasiadas solicitudes. Por favor, inténtalo de nuevo más tarde.' 
+        return res.status(429).json({
+          success: false,
+          message: 'Demasiadas solicitudes. Por favor, inténtalo de nuevo más tarde.'
         });
       }
 
-      // Verificar si ya hay un OTP activo
+      // Verificar si ya existe un OTP activo
       const hasActiveOTP = await OTPService.hasActiveOTP(email);
       if (hasActiveOTP) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Ya se ha enviado un código de verificación a tu correo. Por favor, revisa tu bandeja de entrada o inténtalo de nuevo en unos minutos.' 
+        return res.status(400).json({
+          success: false,
+          message: 'Ya hay un código activo. Revisa tu correo o espera a que expire.'
         });
       }
 
       // Generar y almacenar OTP
       const otp = OTPService.generateOTP();
-      await OTPService.storeOTP(email, otp);
+      const stored = await OTPService.storeOTP(email, otp);
+      
+      if (!stored) {
+        return res.status(500).json({
+          success: false,
+          message: 'Error al generar el código de verificación. Por favor, inténtalo de nuevo.'
+        });
+      }
 
       // Enviar OTP por correo
-      await emailService.sendOTPEmail(email, otp);
+      try {
+        const { success, error } = await sendOTPEmail(email, otp);
+        if (!success) {
+          console.error('Error al enviar el correo:', error);
+          return res.status(500).json({
+            success: false,
+            message: 'Error al enviar el código de verificación. Por favor, inténtalo de nuevo.'
+          });
+        }
 
-      res.status(200).json({ 
-        success: true, 
-        message: 'Código de verificación enviado con éxito' 
-      });
+        return res.json({
+          success: true,
+          message: 'Código de verificación enviado a tu correo',
+          // En desarrollo, devolver el OTP para facilitar las pruebas
+          ...(process.env.NODE_ENV === 'development' && { otp })
+        });
+      } catch (error) {
+        console.error('Error al enviar el correo:', error);
+        return res.status(500).json({
+          success: false,
+          message: 'Error al enviar el correo de verificación. Por favor, inténtalo de nuevo más tarde.'
+        });
+      }
     } catch (error) {
-      console.error('Error al solicitar OTP:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Error al procesar la solicitud de verificación',
+      console.error('Error en la solicitud de OTP:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Error al procesar la solicitud. Por favor, inténtalo de nuevo.',
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
