@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { toast } from 'react-toastify';
-import { Mail, Lock, User, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import OTPVerification from './OTPVerification';
 
 const AuthForm = ({ isLogin = true }) => {
@@ -95,9 +95,6 @@ const AuthForm = ({ isLogin = true }) => {
         <Form onSubmit={handleSubmit}>
           {!isLogin && (
             <InputGroup>
-              <InputIcon>
-                <User size={20} />
-              </InputIcon>
               <Input
                 type="text"
                 placeholder="Nombre completo"
@@ -109,9 +106,6 @@ const AuthForm = ({ isLogin = true }) => {
           )}
           
           <InputGroup>
-            <InputIcon>
-              <Mail size={20} />
-            </InputIcon>
             <Input
               type="email"
               placeholder="Correo electrónico"
@@ -123,9 +117,6 @@ const AuthForm = ({ isLogin = true }) => {
           
           {!isLogin && (
             <InputGroup>
-              <InputIcon>
-                <Lock size={20} />
-              </InputIcon>
               <Input
                 type="password"
                 placeholder="Contraseña"
