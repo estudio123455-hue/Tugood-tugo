@@ -15,22 +15,59 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Inicializar Redis
-const redisClient = createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379'
-});
+// Configuración de Redis para Upstash REST API
+let redisClient;
 
-redisClient.on('error', (err) => {
-  console.error('Redis error:', err);
-});
+if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  console.log('🔌 Usando Upstash REST API');
+  
+  // Usar @upstash/redis para la conexión REST
+  const { Redis } = await import('@upstash/redis');
+  
+  redisClient = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  });
+  
+  // Probar la conexión
+  try {
+    await redisClient.ping();
+    console.log('🚀 Conectado a Upstash Redis (REST API)');
+  } catch (error) {
+    console.error('Error conectando a Upstash Redis:', error);
+  }
+} else if (process.env.REDIS_URL) {
+  // Mantener compatibilidad con conexión directa a Redis
+  console.log('🔌 Usando conexión directa a Redis');
+  redisClient = createClient({
+    url: process.env.REDIS_URL,
+    ...(process.env.REDIS_URL.startsWith('rediss://') && {
+      socket: {
+        tls: true,
+        rejectUnauthorized: false
+      }
+    })
+  });
+  
+  redisClient.on('error', (err) => {
+    console.error('Redis error:', err);
+  });
+  
+  redisClient.on('connect', () => {
+    console.log('🚀 Conectado a Redis');
+  });
+} else {
+  console.error('❌ No se encontró configuración de Redis');
+}
 
-redisClient.on('connect', () => {
-  console.log('🚀 Conectado a Redis');
-});
-
-// Hacer redisClient accesible en todas las rutas
+// Hacer redisClient accesible en todas las rutas y módulos
 const attachRedis = (req, res, next) => {
+  // Adjuntar a la solicitud para usar en las rutas
   req.redis = redisClient;
+  
+  // Hacerlo disponible globalmente para los servicios
+  global.redisClient = redisClient;
+  
   next();
 };
 

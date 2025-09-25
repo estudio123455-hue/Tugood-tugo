@@ -1,10 +1,15 @@
 import bcrypt from 'bcryptjs';
-import redis from '../config/redis.js';
 
 // Configuración
 const OTP_EXPIRATION = 10 * 60; // 10 minutos en segundos
 const MAX_ATTEMPTS = 5; // Máximo de intentos de verificación
 const OTP_LENGTH = 6; // Longitud del código OTP
+
+// Clave para almacenar los intentos de OTP
+const getAttemptsKey = (email) => `otp_attempts:${email}`;
+
+// Importar el cliente Redis configurado en server.js
+const { redisClient } = global || {};
 
 class OTPService {
   /**
@@ -50,16 +55,19 @@ class OTPService {
    */
   static async storeOTP(email, otp) {
     try {
+      if (!redisClient) {
+        console.error('Redis client no está disponible');
+        return false;
+      }
+
       const key = `otp:${email}`;
-      const attemptsKey = `otp_attempts:${email}`;
+      const attemptsKey = getAttemptsKey(email);
       const hashedOTP = await this.hashOTP(otp);
       
       // Almacenar el OTP y los intentos
-      const multi = redis.multi();
-      multi.setex(key, OTP_EXPIRATION, hashedOTP);
-      multi.setex(attemptsKey, OTP_EXPIRATION, '0');
+      await redisClient.set(key, hashedOTP, { ex: OTP_EXPIRATION });
+      await redisClient.set(attemptsKey, '0', { ex: OTP_EXPIRATION });
       
-      await multi.exec();
       return true;
     } catch (error) {
       console.error('Error storing OTP:', error);
@@ -75,17 +83,22 @@ class OTPService {
    */
   static async verifyStoredOTP(email, otp) {
     try {
+      if (!redisClient) {
+        console.error('Redis client no está disponible');
+        return { valid: false, message: 'Error interno del servidor. Intenta de nuevo.' };
+      }
+
       const key = `otp:${email}`;
-      const attemptsKey = `otp_attempts:${email}`;
+      const attemptsKey = getAttemptsKey(email);
       
       // Verificar intentos
-      const attempts = parseInt(await redis.get(attemptsKey) || '0');
+      const attempts = parseInt(await redisClient.get(attemptsKey) || '0');
       if (attempts >= MAX_ATTEMPTS) {
         return { valid: false, message: 'Demasiados intentos. Por favor, solicita un nuevo código.' };
       }
       
       // Obtener OTP almacenado
-      const hashedOTP = await redis.get(key);
+      const hashedOTP = await redisClient.get(key);
       if (!hashedOTP) {
         return { valid: false, message: 'Código expirado o inválido. Solicita uno nuevo.' };
       }
@@ -93,15 +106,16 @@ class OTPService {
       // Verificar OTP
       const isValid = await this.verifyOTP(otp, hashedOTP);
       
-      // Incrementar contador de intentos
-      await redis.incr(attemptsKey);
-      
       if (isValid) {
         // Eliminar OTP después de uso exitoso
-        await redis.del(key);
-        await redis.del(attemptsKey);
+        await redisClient.del(key);
+        await redisClient.del(attemptsKey);
         return { valid: true, message: 'Código verificado correctamente.' };
       } else {
+        // Incrementar contador de intentos fallidos
+        await redisClient.incr(attemptsKey);
+        await redisClient.expire(attemptsKey, OTP_EXPIRATION);
+        
         const remainingAttempts = MAX_ATTEMPTS - (attempts + 1);
         return { 
           valid: false, 
@@ -120,9 +134,19 @@ class OTPService {
    * @returns {Promise<boolean>} True si existe un OTP activo
    */
   static async hasActiveOTP(email) {
+    if (!redisClient) {
+      console.error('Redis client no está disponible');
+      return false;
+    }
+    
     const key = `otp:${email}`;
-    const ttl = await redis.ttl(key);
-    return ttl > 0;
+    try {
+      const exists = await redisClient.exists(key);
+      return exists === 1;
+    } catch (error) {
+      console.error('Error checking active OTP:', error);
+      return false;
+    }
   }
 }
 
