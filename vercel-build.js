@@ -1,6 +1,16 @@
-const { spawnSync } = require('child_process');
+const { spawnSync, execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+
+// Check Node.js version
+const nodeVersion = process.versions.node;
+console.log(`Running Node.js ${nodeVersion}`);
+
+// Verify Node.js version is 22.x
+if (!nodeVersion.startsWith('22.')) {
+  console.error('Error: This project requires Node.js 22.x');
+  process.exit(1);
+}
 
 // Helper function to run commands with better error handling
 const runCommand = (command, args = [], cwd = process.cwd()) => {
