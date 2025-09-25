@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TuGood TuGo - Confirmación de Pedido</title>
+    <meta name="description" content="Sistema de confirmación de pedidos para restaurantes - TuGood TuGo">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            min-height: 100vh;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 480px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 32px 24px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: float 15s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(120deg); }
+            66% { transform: translate(-20px, 20px) rotate(240deg); }
+        }
+
+        .header-icon {
+            width: 72px;
+            height: 72px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 36px;
+            position: relative;
+            z-index: 1;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+            font-weight: 500;
+        }
+
+        .content {
+            padding: 32px 24px;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: #dcfce7;
+            color: #166534;
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 24px;
+            border: 2px solid #bbf7d0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .pedido-card {
+            background: #f9fafb;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .pedido-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .pedido-id {
+            font-size: 20px;
+            font-weight: 800;
+            color: #1f2937;
+        }
+
+        .pedido-status {
+            background: #dcfce7;
+            color: #166534;
+            padding: 6px 16px;
+            border-radius: 25px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid #bbf7d0;
+        }
+
+        .detail-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            transition: all 0.2s ease;
+        }
+
+        .detail-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .detail-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .detail-content {
+            flex: 1;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .detail-value {
+            font-size: 16px;
+            color: #1f2937;
+            font-weight: 700;
+        }
+
+        .security-code {
+            font-family: 'Courier New', monospace;
+            font-size: 24px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 900;
+            letter-spacing: 3px;
+        }
+
+        .total-amount {
+            font-size: 24px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 900;
+        }
+
+        .instructions {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 2px solid #fcd34d;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .instructions h4 {
+            color: #92400e;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .instructions-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .instructions-list li {
+            color: #92400e;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            padding-left: 24px;
+            position: relative;
+            line-height: 1.5;
+        }
+
+        .instructions-list li::before {
+            content: '✅';
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .confirm-button {
+            width: 100%;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 20px 24px;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .confirm-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
+        }
+
+        .confirm-button:active {
+            transform: translateY(-1px);
+        }
+
+        .success-screen {
+            display: none;
+            text-align: center;
+            padding: 40px 24px;
+        }
+
+        .success-screen.show {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .success-icon {
+            font-size: 80px;
+            margin-bottom: 24px;
+            animation: bounce 0.6s ease-out;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 53%, 80%, 100% {
+                transform: translate3d(0, 0, 0);
+            }
+            40%, 43% {
+                transform: translate3d(0, -30px, 0);
+            }
+            70% {
+                transform: translate3d(0, -15px, 0);
+            }
+            90% {
+                transform: translate3d(0, -4px, 0);
+            }
+        }
+
+        .success-title {
+            font-size: 32px;
+            font-weight: 900;
+            color: #166534;
+            margin-bottom: 12px;
+        }
+
+        .success-message {
+            font-size: 18px;
+            color: #166534;
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
+
+        .success-details {
+            background: #dcfce7;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #bbf7d0;
+            margin-bottom: 24px;
+        }
+
+        .success-details p {
+            color: #166534;
+            font-size: 14px;
+            margin: 4px 0;
+            font-weight: 500;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px 24px;
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .footer p {
+            font-size: 12px;
+            color: #6b7280;
+            margin: 2px 0;
+        }
+
+        .loading-screen {
+            display: none;
+            text-align: center;
+            padding: 60px 24px;
+        }
+
+        .loading-screen.show {
+            display: block;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #e5e7eb;
+            border-top: 6px solid #10b981;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 24px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-screen {
+            display: none;
+            text-align: center;
+            padding: 40px 24px;
+        }
+
+        .error-screen.show {
+            display: block;
+        }
+
+        .error-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .error-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #dc2626;
+            margin-bottom: 12px;
+        }
+
+        .error-message {
+            font-size: 16px;
+            color: #6b7280;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 8px;
+            }
+            
+            .container {
+                margin: 0;
+            }
+            
+            .content {
+                padding: 24px 20px;
+            }
+            
+            .pedido-header {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
+            
+            .detail-item {
+                flex-direction: column;
+                text-align: center;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Loading Screen -->
+        <div id="loadingScreen" class="loading-screen show">
+            <div class="header">
+                <div class="header-icon">📦</div>
+                <h1>TuGood TuGo</h1>
+                <p>Verificando pedido...</p>
+            </div>
+            <div class="content">
+                <div class="loading-spinner"></div>
+                <p style="color: #6b7280; font-weight: 500;">Procesando información del pedido</p>
+            </div>
+        </div>
+
+        <!-- Error Screen -->
+        <div id="errorScreen" class="error-screen">
+            <div class="header">
+                <div class="header-icon">❌</div>
+                <h1>Error</h1>
+                <p>No se pudo procesar el pedido</p>
+            </div>
+            <div class="content">
+                <div class="error-icon">⚠️</div>
+                <h3 class="error-title">Código QR no válido</h3>
+                <p class="error-message">El código QR escaneado no contiene información válida de TuGood TuGo.</p>
+            </div>
+        </div>
+
+        <!-- Main Screen -->
+        <div id="mainScreen" style="display: none;">
+            <div class="header">
+                <div class="header-icon">📦</div>
+                <h1>Confirmación de Pedido</h1>
+                <p>TuGood TuGo - Panel Restaurante</p>
+            </div>
+
+            <div class="content">
+                <div class="status-badge">
+                    ✅ Pedido Verificado
+                </div>
+
+                <div class="pedido-card">
+                    <div class="pedido-header">
+                        <div class="pedido-id" id="pedidoId">Pedido #</div>
+                        <div class="pedido-status">Listo</div>
+                    </div>
+                    
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <div class="detail-icon">👤</div>
+                            <div class="detail-content">
+                                <div class="detail-label">Cliente</div>
+                                <div class="detail-value" id="cliente">-</div>
+                            </div>
+                        </div>
+
+                        <div class="detail-item">
+                            <div class="detail-icon">🔐</div>
+                            <div class="detail-content">
+                                <div class="detail-label">Código de Seguridad</div>
+                                <div class="detail-value security-code" id="codigoSeguridad">-</div>
+                            </div>
+                        </div>
+
+                        <div class="detail-item">
+                            <div class="detail-icon">🏪</div>
+                            <div class="detail-content">
+                                <div class="detail-label">Comercio</div>
+                                <div class="detail-value" id="comercio">-</div>
+                            </div>
+                        </div>
+
+                        <div class="detail-item">
+                            <div class="detail-icon">⏰</div>
+                            <div class="detail-content">
+                                <div class="detail-label">Fecha de Recogida</div>
+                                <div class="detail-value" id="fechaRecogida">-</div>
+                            </div>
+                        </div>
+
+                        <div class="detail-item">
+                            <div class="detail-icon">💰</div>
+                            <div class="detail-content">
+                                <div class="detail-label">Total del Pedido</div>
+                                <div class="detail-value total-amount" id="total">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="instructions">
+                    <h4>⚠️ Instrucciones de Entrega</h4>
+                    <ul class="instructions-list">
+                        <li>Verificar que el código de seguridad coincida</li>
+                        <li>Confirmar la identidad del cliente</li>
+                        <li>Entregar el pedido completo</li>
+                        <li>Marcar como entregado en el sistema</li>
+                    </ul>
+                </div>
+
+                <button class="confirm-button" onclick="confirmarEntrega()">
+                    ✅ Confirmar Entrega del Pedido
+                </button>
+            </div>
+        </div>
+
+        <!-- Success Screen -->
+        <div id="successScreen" class="success-screen">
+            <div class="header">
+                <div class="header-icon">✅</div>
+                <h1>¡Entregado!</h1>
+                <p>Pedido completado exitosamente</p>
+            </div>
+            <div class="content">
+                <div class="success-icon">🎉</div>
+                <h3 class="success-title">¡Pedido Entregado!</h3>
+                <p class="success-message">El pedido ha sido marcado como entregado exitosamente.</p>
+                
+                <div class="success-details">
+                    <p><strong>Hora de entrega:</strong> <span id="horaEntrega">-</span></p>
+                    <p><strong>Cliente:</strong> <span id="clienteEntrega">-</span></p>
+                    <p><strong>Pedido:</strong> <span id="pedidoEntrega">-</span></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Escaneado: <span id="horaEscaneo">-</span></p>
+            <p>TuGood TuGo - Sistema de Confirmación v1.0</p>
+        </div>
+    </div>
+
+    <script>
+        // Obtener datos de la URL
+        function obtenerDatosURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const dataParam = urlParams.get('data');
+            
+            if (dataParam) {
+                try {
+                    const decodedData = atob(dataParam);
+                    return JSON.parse(decodedData);
+                } catch (error) {
+                    console.error('Error decodificando datos:', error);
+                    return null;
+                }
+            }
+            return null;
+        }
+
+        // Mostrar información del pedido
+        function mostrarPedido(data) {
+            document.getElementById('pedidoId').textContent = `Pedido #${data.pedido}`;
+            document.getElementById('cliente').textContent = data.cliente;
+            document.getElementById('codigoSeguridad').textContent = data.codigo;
+            document.getElementById('comercio').textContent = data.comercio;
+            document.getElementById('fechaRecogida').textContent = data.fecha;
+            document.getElementById('total').textContent = data.total;
+            
+            // Mostrar hora de escaneo
+            document.getElementById('horaEscaneo').textContent = new Date().toLocaleString('es-CO');
+            
+            // Ocultar loading y mostrar main
+            document.getElementById('loadingScreen').classList.remove('show');
+            document.getElementById('mainScreen').style.display = 'block';
+        }
+
+        // Mostrar error
+        function mostrarError() {
+            document.getElementById('loadingScreen').classList.remove('show');
+            document.getElementById('errorScreen').classList.add('show');
+        }
+
+        // Confirmar entrega
+        function confirmarEntrega() {
+            const data = obtenerDatosURL();
+            
+            // Llenar datos de entrega
+            document.getElementById('horaEntrega').textContent = new Date().toLocaleString('es-CO');
+            document.getElementById('clienteEntrega').textContent = data.cliente;
+            document.getElementById('pedidoEntrega').textContent = `#${data.pedido}`;
+            
+            // Mostrar pantalla de éxito
+            document.getElementById('mainScreen').style.display = 'none';
+            document.getElementById('successScreen').classList.add('show');
+            
+            // Opcional: Enviar confirmación al servidor aquí
+            console.log('Pedido entregado:', data);
+        }
+
+        // Inicializar aplicación
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                const data = obtenerDatosURL();
+                
+                if (data && data.tipo === 'CONFIRMACION_PEDIDO') {
+                    mostrarPedido(data);
+                } else {
+                    mostrarError();
+                }
+            }, 1500); // Simular tiempo de carga
+        });
+    </script>
+</body>
+</html>

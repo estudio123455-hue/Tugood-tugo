@@ -1,0 +1,45 @@
+{
+  "name": "tugood-tugo",
+  "version": "1.0.0",
+  "description": "App para encontrar comercios locales con excedente de comida",
+  "main": "index.js",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "dev:full": "concurrently \"npm start\" \"cd backend && npm run dev\"",
+    "vercel-build": "npm run build"
+  },
+  "dependencies": {
+    "@emailjs/browser": "^4.4.1",
+    "@googlemaps/js-api-loader": "^1.16.10",
+    "@googlemaps/react-wrapper": "^1.2.0",
+    "bcryptjs": "^3.0.2",
+    "concurrently": "^8.2.2",
+    "firebase": "^9.17.1",
+    "ioredis": "^5.8.0",
+    "jsonwebtoken": "^9.0.2",
+    "lucide-react": "^0.263.1",
+    "nodemailer": "^7.0.6",
+    "prop-types": "^15.8.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.8.0",
+    "react-scripts": "5.0.1",
+    "react-toastify": "^11.0.5",
+    "styled-components": "^5.3.6"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

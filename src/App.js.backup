@@ -1,0 +1,265 @@
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import LoginScreen from './pages/LoginScreen';
+import LocationScreen from './pages/LocationScreen';
+import MainScreen from './pages/MainScreen';
+import OfferDetail from './pages/OfferDetail';
+import Cart from './pages/Cart';
+import MyOrders from './pages/MyOrders';
+import ActiveOrders from './pages/ActiveOrders';
+import Profile from './pages/Profile';
+import RestaurantConfirmation from './pages/RestaurantConfirmation';
+import OrderVerification from './pages/OrderVerification';
+import EmailVerification from './pages/EmailVerification';
+import MerchantPanel from './pages/MerchantPanel';
+import MerchantDashboard from './pages/MerchantDashboard';
+import MerchantSlots from './pages/MerchantSlots';
+import ProtectedRoute from './components/ProtectedRoute';
+import { authAPI } from './services/api';
+import logger from './utils/logger';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+function App() {
+  const [user, setUser] = useState(null);
+  const [selectedCity, setSelectedCity] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    // Check for existing user session only once on mount
+    console.log('App: Verificando sesión existente...');
+    const savedUser = authAPI.getCurrentUser();
+    const savedCity = localStorage.getItem('tugood_city');
+    
+    console.log('App: Usuario guardado:', !!savedUser);
+    console.log('App: Está autenticado:', authAPI.isAuthenticated());
+    
+    if (savedUser && authAPI.isAuthenticated()) {
+      console.log('App: Restaurando sesión de usuario');
+      setUser(savedUser);
+    } else {
+      console.log('App: No hay sesión válida');
+      // Limpiar datos inconsistentes
+      authAPI.logout();
+    }
+    
+    if (savedCity) {
+      try {
+        setSelectedCity(JSON.parse(savedCity));
+        console.log('App: Ciudad restaurada:', JSON.parse(savedCity).name);
+      } catch (e) {
+        console.log('App: Error al parsear ciudad, eliminando');
+        localStorage.removeItem('tugood_city');
+      }
+    }
+    
+    setAuthChecked(true);
+    console.log('App: Verificación de autenticación completada');
+  }, []);
+
+  const handleLogin = (userData) => {
+    setUser(userData);
+    // Token and user data are already saved in authAPI.login
+    // Don't navigate here - let the routing logic handle it
+  };
+
+  const handleLocationSelect = (cityData) => {
+    logger.location('handleLocationSelect llamado', cityData);
+    
+    // Evitar múltiples ejecuciones con la misma ciudad
+    if (selectedCity && selectedCity.id === cityData.id) {
+      logger.debug('Ciudad ya seleccionada, ignorando');
+      return;
+    }
+    
+    // Show toast notification for location change (only for automatic changes, not manual confirmation)
+    if (selectedCity && cityData.id !== 'current' && cityData.id !== 'fallback') {
+      toast.info(`📍 Tu ubicación cambió a ${cityData.name}`, {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    }
+    
+    logger.info(`Actualizando ciudad de: ${selectedCity?.name} a: ${cityData.name}`);
+    setSelectedCity(cityData);
+    localStorage.setItem('tugood_city', JSON.stringify(cityData));
+    logger.info('Ciudad actualizada y guardada');
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setSelectedCity(null);
+    authAPI.logout();
+    localStorage.removeItem('tugood_city');
+  };
+
+  return (
+    <div className="App">
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <Routes>
+          <Route 
+            path="/login" 
+            element={
+              !authChecked ? (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                  <div>Cargando...</div>
+                </div>
+              ) : user ? (
+                <Navigate to={selectedCity ? "/main" : "/location"} replace />
+              ) : (
+                <LoginScreen onLogin={handleLogin} />
+              )
+            } 
+          />
+          <Route 
+            path="/" 
+            element={
+              !authChecked ? (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                  <div>Cargando...</div>
+                </div>
+              ) : !user ? (
+                <Navigate to="/login" replace />
+              ) : !selectedCity ? (
+                <Navigate to="/location" replace />
+              ) : (
+                <Navigate to="/main" replace />
+              )
+            } 
+          />
+          <Route 
+            path="/location" 
+            element={
+              <ProtectedRoute>
+                <LocationScreen 
+                  user={user}
+                  onLocationSelect={handleLocationSelect}
+                  onLogout={handleLogout}
+                />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/main" 
+            element={
+              <ProtectedRoute>
+                {selectedCity ? (
+                  user?.tipo === 'comercio' ? (
+                    <MerchantDashboard 
+                      user={user}
+                      city={selectedCity}
+                      onLogout={handleLogout}
+                    />
+                  ) : (
+                    <MainScreen 
+                      user={user}
+                      city={selectedCity}
+                      onLogout={handleLogout}
+                    />
+                  )
+                ) : (
+                  <Navigate to="/location" replace />
+                )}
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/offer/:offerId" 
+            element={
+              <ProtectedRoute>
+                <OfferDetail 
+                  user={user}
+                  onReserve={(offer) => console.log('Reserva realizada:', offer)}
+                />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/cart" 
+            element={
+              <ProtectedRoute>
+                <Cart 
+                  user={user}
+                  onOrderComplete={(order) => console.log('Pedido completado:', order)}
+                />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/pedidos" 
+            element={
+              <ProtectedRoute>
+                <MyOrders user={user} />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/pedidos-activos" 
+            element={
+              <ProtectedRoute>
+                <ActiveOrders />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute>
+                <Profile 
+                  user={user}
+                  onLogout={handleLogout}
+                />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/restaurant/confirm/:orderData" 
+            element={<RestaurantConfirmation />} 
+          />
+          <Route 
+            path="/verificar/:encodedData" 
+            element={<OrderVerification />} 
+          />
+          <Route 
+            path="/email-verification" 
+            element={<EmailVerification />} 
+          />
+          <Route 
+            path="/merchant-panel" 
+            element={
+              <ProtectedRoute>
+                <MerchantPanel user={user} />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/merchant-slots" 
+            element={
+              <ProtectedRoute>
+                <MerchantSlots user={user} onLogout={handleLogout} />
+              </ProtectedRoute>
+            } 
+          />
+        </Routes>
+      </Router>
+      <ToastContainer
+        position="top-center"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+    </div>
+  );
+}
+
+export default App;

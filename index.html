@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TuGood TuGo - Rescata comida, ahorra dinero</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #212529;
+            line-height: 1.6;
+        }
+
+        :root {
+            --primary-color: #00c851;
+            --primary-dark: #00a043;
+            --secondary-color: #ff6b35;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --white: #ffffff;
+            --border-color: #e9ecef;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            --border-radius: 12px;
+            --border-radius-sm: 8px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 48px;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: var(--white);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            font-size: 16px;
+            background-color: var(--white);
+            min-height: 48px;
+        }
+
+        .card {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        /* Welcome Screen Styles */
+        .welcome-screen {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #00c851 0%, #00a043 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 0;
+        }
+
+        .welcome-header {
+            text-align: center;
+            margin-bottom: 32px;
+            color: white;
+        }
+
+        .logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .logo-icon {
+            font-size: 48px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .tagline {
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .auth-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            margin-bottom: 24px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 24px;
+            background-color: #f8f9fa;
+            border-radius: var(--border-radius-sm);
+            padding: 4px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            border-radius: var(--border-radius-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-secondary);
+        }
+
+        .tab-btn.active {
+            background-color: var(--white);
+            color: var(--text-primary);
+            box-shadow: var(--shadow);
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .social-login-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .social-btn {
+            width: 100%;
+            justify-content: flex-start;
+            padding-left: 20px;
+            font-weight: 500;
+        }
+
+        .welcome-footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        /* Location Screen Styles */
+        .location-screen {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+            display: none;
+        }
+
+        .location-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--white);
+        }
+
+        .cities-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .city-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background-color: var(--white);
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            width: 100%;
+        }
+
+        .city-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        .city-card.selected {
+            border-color: var(--primary-color);
+            background-color: rgba(0, 200, 81, 0.05);
+        }
+
+        /* Main Screen Styles */
+        .main-screen {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+            display: none;
+        }
+
+        .main-header {
+            background-color: var(--white);
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 0;
+            box-shadow: var(--shadow);
+        }
+
+        .businesses-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .business-card {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease;
+        }
+
+        .business-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .business-image {
+            position: relative;
+            height: 160px;
+            background: linear-gradient(45deg, #e8f5e8, #f0f8f0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+
+        .business-info {
+            padding: 20px;
+        }
+
+        .business-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .business-description {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .business-pricing {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .discount-price {
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .original-price {
+            text-decoration: line-through;
+            color: var(--text-secondary);
+            margin-right: 8px;
+        }
+
+        .reserve-btn {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            padding: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .show {
+            display: block !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Welcome Screen -->
+    <div id="welcomeScreen" class="welcome-screen">
+        <div class="container">
+            <div class="welcome-header">
+                <div class="logo">
+                    <div class="logo-icon">🍽️</div>
+                    <h1>TuGood TuGo</h1>
+                </div>
+                <p class="tagline">Rescata comida, ahorra dinero</p>
+            </div>
+
+            <div class="auth-card card">
+                <div class="auth-tabs">
+                    <button class="tab-btn active">Iniciar Sesión</button>
+                    <button class="tab-btn">Registrarse</button>
+                </div>
+
+                <form class="auth-form" onsubmit="handleLogin(event)">
+                    <input type="email" placeholder="Correo electrónico" class="input" required>
+                    <input type="password" placeholder="Contraseña" class="input" required>
+                    <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+                </form>
+
+                <div style="text-align: center; margin: 24px 0; color: #6c757d;">o continúa con</div>
+
+                <div class="social-login-buttons">
+                    <button class="btn btn-secondary social-btn" onclick="handleSocialLogin('google')">
+                        🔍 Google
+                    </button>
+                    <button class="btn btn-secondary social-btn" onclick="handleSocialLogin('facebook')">
+                        📘 Facebook
+                    </button>
+                    <button class="btn btn-secondary social-btn" onclick="handleSocialLogin('apple')">
+                        🍎 Apple
+                    </button>
+                </div>
+            </div>
+
+            <div class="welcome-footer">
+                <p>Al continuar, aceptas nuestros términos y condiciones</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Location Screen -->
+    <div id="locationScreen" class="location-screen">
+        <div class="container">
+            <div class="location-header">
+                <button onclick="showWelcome()">← Atrás</button>
+                <span>Hola, Usuario</span>
+            </div>
+
+            <div style="padding: 24px 0;">
+                <div style="text-align: center; margin-bottom: 32px;">
+                    <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 8px;">¿Dónde estás?</h1>
+                    <p style="color: #6c757d;">Selecciona tu ciudad para encontrar ofertas cercanas</p>
+                </div>
+
+                <button class="btn btn-primary" style="width: 100%; margin-bottom: 32px;" onclick="useCurrentLocation()">
+                    📍 Usar mi ubicación actual
+                </button>
+
+                <input type="text" placeholder="Buscar ciudad..." class="input" style="margin-bottom: 20px;">
+
+                <h3 style="margin-bottom: 16px;">Ciudades populares</h3>
+                <div class="cities-grid">
+                    <button class="city-card" onclick="selectCity('Madrid')">
+                        📍 <div><strong>Madrid</strong><br><small>España</small></div>
+                    </button>
+                    <button class="city-card" onclick="selectCity('Barcelona')">
+                        📍 <div><strong>Barcelona</strong><br><small>España</small></div>
+                    </button>
+                    <button class="city-card" onclick="selectCity('Valencia')">
+                        📍 <div><strong>Valencia</strong><br><small>España</small></div>
+                    </button>
+                    <button class="city-card" onclick="selectCity('Sevilla')">
+                        📍 <div><strong>Sevilla</strong><br><small>España</small></div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Screen -->
+    <div id="mainScreen" class="main-screen">
+        <div class="container">
+            <div class="main-header">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        📍 <span id="selectedCity">Madrid</span>
+                    </div>
+                    <button onclick="logout()" style="background: none; border: none; cursor: pointer;">👤</button>
+                </div>
+                
+                <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                    <input type="text" placeholder="Buscar comercios..." class="input" style="flex: 1;">
+                    <button class="btn btn-primary" onclick="showFilters()">🔍</button>
+                </div>
+
+                <div style="display: flex; background: #f8f9fa; border-radius: 8px; padding: 4px;">
+                    <button class="btn" style="flex: 1; background: white; color: #00c851;">📋 Lista</button>
+                    <button class="btn" style="flex: 1; background: transparent;">🗺️ Mapa</button>
+                </div>
+            </div>
+
+            <div style="padding: 24px 0;">
+                <div style="margin-bottom: 24px;">
+                    <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 4px;">5 comercios disponibles</h2>
+                    <p style="color: #6c757d;">Cerca de <span id="cityName">Madrid</span></p>
+                </div>
+
+                <div class="businesses-grid">
+                    <div class="business-card">
+                        <div class="business-image">🥖</div>
+                        <div class="business-info">
+                            <h3 class="business-name">Panadería San Miguel</h3>
+                            <p class="business-description">Pan artesanal y bollería del día</p>
+                            <div class="business-pricing">
+                                <div>
+                                    <span class="original-price">15€</span>
+                                    <span class="discount-price">5€</span>
+                                </div>
+                                <small style="color: #6c757d;">3 disponibles</small>
+                            </div>
+                            <button class="reserve-btn">Reservar ahora</button>
+                        </div>
+                    </div>
+
+                    <div class="business-card">
+                        <div class="business-image">🍽️</div>
+                        <div class="business-info">
+                            <h3 class="business-name">Restaurante El Jardín</h3>
+                            <p class="business-description">Menú del día y platos caseros</p>
+                            <div class="business-pricing">
+                                <div>
+                                    <span class="original-price">25€</span>
+                                    <span class="discount-price">8€</span>
+                                </div>
+                                <small style="color: #6c757d;">2 disponibles</small>
+                            </div>
+                            <button class="reserve-btn">Reservar ahora</button>
+                        </div>
+                    </div>
+
+                    <div class="business-card">
+                        <div class="business-image">🛒</div>
+                        <div class="business-info">
+                            <h3 class="business-name">Supermercado Fresh</h3>
+                            <p class="business-description">Frutas, verduras y productos frescos</p>
+                            <div class="business-pricing">
+                                <div>
+                                    <span class="original-price">20€</span>
+                                    <span class="discount-price">7€</span>
+                                </div>
+                                <small style="color: #6c757d;">5 disponibles</small>
+                            </div>
+                            <button class="reserve-btn">Reservar ahora</button>
+                        </div>
+                    </div>
+
+                    <div class="business-card">
+                        <div class="business-image">☕</div>
+                        <div class="business-info">
+                            <h3 class="business-name">Cafetería Central</h3>
+                            <p class="business-description">Café, pasteles y sándwiches</p>
+                            <div class="business-pricing">
+                                <div>
+                                    <span class="original-price">12€</span>
+                                    <span class="discount-price">4€</span>
+                                </div>
+                                <small style="color: #6c757d;">4 disponibles</small>
+                            </div>
+                            <button class="reserve-btn">Reservar ahora</button>
+                        </div>
+                    </div>
+
+                    <div class="business-card">
+                        <div class="business-image">🍕</div>
+                        <div class="business-info">
+                            <h3 class="business-name">Pizzería Napoli</h3>
+                            <p class="business-description">Pizza artesanal al horno de leña</p>
+                            <div class="business-pricing">
+                                <div>
+                                    <span class="original-price">18€</span>
+                                    <span class="discount-price">6€</span>
+                                </div>
+                                <small style="color: #6c757d;">1 disponible</small>
+                            </div>
+                            <button class="reserve-btn">Reservar ahora</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function handleLogin(event) {
+            event.preventDefault();
+            showLocation();
+        }
+
+        function handleSocialLogin(provider) {
+            alert(`Iniciando sesión con ${provider}...`);
+            setTimeout(() => {
+                showLocation();
+            }, 1000);
+        }
+
+        function showWelcome() {
+            document.getElementById('welcomeScreen').style.display = 'flex';
+            document.getElementById('locationScreen').style.display = 'none';
+            document.getElementById('mainScreen').style.display = 'none';
+        }
+
+        function showLocation() {
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('locationScreen').style.display = 'block';
+            document.getElementById('mainScreen').style.display = 'none';
+        }
+
+        function showMain() {
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('locationScreen').style.display = 'none';
+            document.getElementById('mainScreen').style.display = 'block';
+        }
+
+        function selectCity(city) {
+            document.getElementById('selectedCity').textContent = city;
+            document.getElementById('cityName').textContent = city;
+            
+            // Add visual feedback
+            const cityCards = document.querySelectorAll('.city-card');
+            cityCards.forEach(card => card.classList.remove('selected'));
+            event.target.classList.add('selected');
+            
+            setTimeout(() => {
+                showMain();
+            }, 800);
+        }
+
+        function useCurrentLocation() {
+            alert('Obteniendo tu ubicación actual...');
+            setTimeout(() => {
+                selectCity('Tu ubicación actual');
+            }, 1000);
+        }
+
+        function logout() {
+            if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+                showWelcome();
+            }
+        }
+
+        function showFilters() {
+            alert('Panel de filtros - En una implementación real, aquí se abriría el panel de filtros');
+        }
+
+        // Add some interactive effects
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab switching
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Reserve button effects
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('reserve-btn')) {
+                    e.target.textContent = 'Reservando...';
+                    e.target.style.backgroundColor = '#6c757d';
+                    setTimeout(() => {
+                        alert('¡Reserva confirmada! Te hemos enviado los detalles por email.');
+                        e.target.textContent = 'Reservar ahora';
+                        e.target.style.backgroundColor = '#00c851';
+                    }, 1500);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

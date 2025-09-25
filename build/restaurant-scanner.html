@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TuGood TuGo - Scanner Restaurante</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scanner-container {
+            max-width: 480px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: float 15s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(120deg); }
+            66% { transform: translate(-20px, 20px) rotate(240deg); }
+        }
+
+        .header-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 32px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .content {
+            padding: 30px 20px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-section h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .qr-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.2s ease;
+        }
+
+        .qr-input:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .scan-button {
+            width: 100%;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .scan-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+        }
+
+        .result-section {
+            display: none;
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .result-section.show {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pedido-info {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .pedido-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .pedido-id {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .pedido-status {
+            background: #dcfce7;
+            color: #166534;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .detail-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .detail-label {
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            font-size: 14px;
+            color: #1f2937;
+            font-weight: 600;
+        }
+
+        .security-code {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+            letter-spacing: 2px;
+        }
+
+        .total-amount {
+            font-size: 20px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+        }
+
+        .confirm-button {
+            width: 100%;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .confirm-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+        }
+
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            background: #dcfce7;
+            border-radius: 12px;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+        }
+
+        .success-message.show {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .success-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .instructions {
+            background: #fef3c7;
+            border: 1px solid #fcd34d;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .instructions h4 {
+            color: #92400e;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .instructions p {
+            color: #92400e;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 480px) {
+            .scanner-container {
+                margin: 10px;
+            }
+            
+            .content {
+                padding: 20px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="scanner-container">
+        <div class="header">
+            <div class="header-icon">📦</div>
+            <h1>Scanner de Pedidos</h1>
+            <p>TuGood TuGo - Panel Restaurante</p>
+        </div>
+
+        <div class="content">
+            <div class="instructions">
+                <h4>📱 Instrucciones</h4>
+                <p>Escanea el código QR del cliente o pega el contenido del código en el campo de texto para verificar el pedido.</p>
+            </div>
+
+            <div class="input-section">
+                <h3>🔍 Datos del QR</h3>
+                <textarea 
+                    id="qrInput" 
+                    class="qr-input" 
+                    placeholder="Pega aquí el contenido del código QR escaneado..."
+                ></textarea>
+            </div>
+
+            <button class="scan-button" onclick="procesarQR()">
+                ✅ Verificar Pedido
+            </button>
+
+            <div id="resultSection" class="result-section">
+                <div class="pedido-info">
+                    <div class="pedido-header">
+                        <div class="pedido-id" id="pedidoId">Pedido #</div>
+                        <div class="pedido-status">Verificado</div>
+                    </div>
+                    
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">Cliente</span>
+                            <span class="detail-value" id="cliente">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Código de Seguridad</span>
+                            <span class="detail-value security-code" id="codigoSeguridad">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Comercio</span>
+                            <span class="detail-value" id="comercio">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Fecha de Recogida</span>
+                            <span class="detail-value" id="fechaRecogida">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Total</span>
+                            <span class="detail-value total-amount" id="total">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="confirm-button" onclick="confirmarEntrega()">
+                    ✅ Confirmar Entrega del Pedido
+                </button>
+            </div>
+
+            <div id="successMessage" class="success-message">
+                <div class="success-icon">✅</div>
+                <h3>¡Pedido Entregado!</h3>
+                <p>El pedido ha sido marcado como entregado exitosamente.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function procesarQR() {
+            const input = document.getElementById('qrInput');
+            const resultSection = document.getElementById('resultSection');
+            const successMessage = document.getElementById('successMessage');
+            
+            try {
+                const data = JSON.parse(input.value.trim());
+                
+                if (data.tipo === 'CONFIRMACION_PEDIDO') {
+                    // Mostrar información del pedido
+                    document.getElementById('pedidoId').textContent = `Pedido #${data.pedido}`;
+                    document.getElementById('cliente').textContent = data.cliente;
+                    document.getElementById('codigoSeguridad').textContent = data.codigo;
+                    document.getElementById('comercio').textContent = data.comercio;
+                    document.getElementById('fechaRecogida').textContent = data.fecha;
+                    document.getElementById('total').textContent = data.total;
+                    
+                    resultSection.classList.add('show');
+                    successMessage.classList.remove('show');
+                } else {
+                    alert('❌ Código QR no válido. Asegúrate de escanear un código de TuGood TuGo.');
+                }
+            } catch (error) {
+                alert('❌ Error al leer el código QR. Verifica que el contenido sea correcto.');
+            }
+        }
+
+        function confirmarEntrega() {
+            const resultSection = document.getElementById('resultSection');
+            const successMessage = document.getElementById('successMessage');
+            
+            resultSection.classList.remove('show');
+            successMessage.classList.add('show');
+            
+            // Limpiar el formulario después de 3 segundos
+            setTimeout(() => {
+                document.getElementById('qrInput').value = '';
+                successMessage.classList.remove('show');
+            }, 3000);
+        }
+
+        // Auto-procesar si se pega contenido
+        document.getElementById('qrInput').addEventListener('paste', function() {
+            setTimeout(() => {
+                if (this.value.trim()) {
+                    procesarQR();
+                }
+            }, 100);
+        });
+    </script>
+</body>
+</html>

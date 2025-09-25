@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido a TuGood TuGo</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f8f9fa;">
+    <div style="max-width: 600px; margin: 0 auto; background: #f8f9fa; padding: 20px;">
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">🛒 TuGood TuGo</h1>
+            <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">¡Bienvenido a la revolución contra el desperdicio!</p>
+        </div>
+        
+        <!-- Content -->
+        <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h2 style="color: #1f2937; margin-bottom: 20px;">¡Hola {{user_name}}! 👋</h2>
+            
+            <p style="color: #4b5563; line-height: 1.6; margin-bottom: 20px;">
+                ¡Gracias por registrarte en TuGood TuGo! Tu cuenta como <strong>{{user_type}}</strong> ha sido creada exitosamente.
+            </p>
+            
+            <!-- Código de Confirmación -->
+            <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+                <h3 style="color: #1f2937; margin-bottom: 10px;">🔐 Código de Confirmación</h3>
+                <div style="font-size: 32px; font-weight: bold; color: #d97706; letter-spacing: 4px; font-family: monospace;">
+                    {{confirmation_code}}
+                </div>
+                <p style="color: #6b7280; font-size: 14px; margin-top: 10px;">
+                    Ingresa este código en la aplicación para completar tu registro
+                </p>
+            </div>
+            
+            <!-- Detalles del Registro -->
+            <div style="background: #ecfdf5; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0;">
+                <h4 style="color: #065f46; margin: 0 0 10px 0;">📋 Detalles del Registro:</h4>
+                <p style="margin: 5px 0; color: #047857;"><strong>Email:</strong> {{user_email}}</p>
+                <p style="margin: 5px 0; color: #047857;"><strong>Fecha:</strong> {{timestamp}}</p>
+                <p style="margin: 5px 0; color: #047857;"><strong>Dispositivo:</strong> {{device_type}} ({{browser}})</p>
+                <p style="margin: 5px 0; color: #047857;"><strong>Ubicación:</strong> {{location}}</p>
+            </div>
+            
+            <!-- CTA Button -->
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="https://tugood-tugo.vercel.app" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                    🚀 Ir a TuGood TuGo
+                </a>
+            </div>
+            
+            <!-- Footer -->
+            <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 30px;">
+                <p style="color: #6b7280; font-size: 14px; text-align: center;">
+                    Si tienes alguna pregunta, contáctanos en <a href="mailto:{{support_email}}" style="color: #d97706;">{{support_email}}</a>
+                </p>
+                <p style="color: #9ca3af; font-size: 12px; text-align: center; margin-top: 10px;">
+                    Este código expira en 5 minutos por seguridad.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,473 @@
+// Mock API para demostración - Simula backend completo
+export const mockApi = {
+  // Datos de comercios demo
+  comercios: [
+    {
+      id: 1,
+      nombre: 'Panadería El Buen Pan',
+      descripcion: 'Panadería artesanal con productos frescos del día',
+      direccion: 'Carrera 15 #93-47, Chapinero',
+      telefono: '+57 301 234 5678',
+      tipo_comida: 'Panadería',
+      zona: 'Chapinero',
+      calificacion: 4.5,
+      tiempo_entrega: '15-30 min',
+      costo_envio: 3000,
+      imagen: '/images/panaderia.jpg',
+      coordenadas: { lat: 4.6533, lng: -74.0621 },
+      horario: '6:00 AM - 8:00 PM',
+      activo: true,
+      packs: [
+        {
+          id: 1,
+          nombre: 'Pack Desayuno Completo',
+          descripcion: 'Pan francés, croissant, jugo natural y café',
+          precio_original: 15000,
+          precio_oferta: 8000,
+          cantidad_disponible: 5,
+          fecha_vencimiento: new Date(Date.now() + 24*60*60*1000).toISOString(),
+          imagen: '/images/pack-desayuno.jpg'
+        },
+        {
+          id: 3,
+          nombre: 'Pack Merienda Dulce',
+          descripcion: 'Torta, galletas y bebida caliente',
+          precio_original: 12000,
+          precio_oferta: 6000,
+          cantidad_disponible: 3,
+          fecha_vencimiento: new Date(Date.now() + 18*60*60*1000).toISOString(),
+          imagen: '/images/merienda.jpg'
+        }
+      ]
+    },
+    {
+      id: 2,
+      nombre: 'Restaurante Sabor Casero',
+      descripcion: 'Comida casera colombiana tradicional',
+      direccion: 'Calle 85 #15-20, Usaquén',
+      telefono: '+57 302 345 6789',
+      tipo_comida: 'Comida Casera',
+      zona: 'Usaquén',
+      calificacion: 4.3,
+      tiempo_entrega: '20-35 min',
+      costo_envio: 4000,
+      imagen: '/images/casero.jpg',
+      coordenadas: { lat: 4.6796, lng: -74.0593 },
+      horario: '11:00 AM - 9:00 PM',
+      activo: true,
+      packs: [
+        {
+          id: 2,
+          nombre: 'Almuerzo Ejecutivo',
+          descripcion: 'Sopa, seco de cabrito, arroz, ensalada y jugo',
+          precio_original: 25000,
+          precio_oferta: 15000,
+          cantidad_disponible: 8,
+          fecha_vencimiento: new Date(Date.now() + 12*60*60*1000).toISOString(),
+          imagen: '/images/almuerzo.jpg'
+        }
+      ]
+    },
+    {
+      id: 3,
+      nombre: 'Pizzería Napoli',
+      descripcion: 'Pizzas artesanales al horno de leña',
+      direccion: 'Carrera 11 #85-32, Zona Rosa',
+      telefono: '+57 303 456 7890',
+      tipo_comida: 'Pizzería',
+      zona: 'Zona Rosa',
+      calificacion: 4.7,
+      tiempo_entrega: '25-40 min',
+      costo_envio: 5000,
+      imagen: '/images/pizzeria.jpg',
+      coordenadas: { lat: 4.6736, lng: -74.0574 },
+      horario: '5:00 PM - 11:00 PM',
+      activo: true,
+      packs: [
+        {
+          id: 4,
+          nombre: 'Pack Pizza Familiar',
+          descripcion: 'Pizza grande + bebidas + postre',
+          precio_original: 45000,
+          precio_oferta: 28000,
+          cantidad_disponible: 4,
+          fecha_vencimiento: new Date(Date.now() + 8*60*60*1000).toISOString(),
+          imagen: '/images/pizza-pack.jpg'
+        }
+      ]
+    }
+  ],
+
+  // Datos de usuario demo
+  usuario: {
+    id: 'user_demo',
+    nombre: 'Usuario Demo',
+    email: 'demo@tugoodtugo.com',
+    telefono: '300-000-0000',
+    tipo: 'cliente',
+    ciudad: 'Bogotá'
+  },
+
+  // Pedidos demo
+  pedidos: [
+    {
+      id: 'pedido_demo_1',
+      usuario_id: 'user_demo',
+      comercio_id: 1,
+      comercio_nombre: 'Panadería El Buen Pan',
+      comercio_direccion: 'Carrera 15 #93-47, Chapinero',
+      comercio_telefono: '+57 301 234 5678',
+      items: [
+        {
+          pack_id: 1,
+          nombre: 'Pack Desayuno Completo',
+          cantidad: 1,
+          precio: 8000
+        }
+      ],
+      total: 8000,
+      estado: 'confirmado',
+      fecha_pedido: new Date(Date.now() - 2*60*60*1000).toISOString(),
+      fecha_recogida: new Date(Date.now() + 2*60*60*1000).toISOString(),
+      codigo_seguridad: 'A3X9K2',
+      metodo_pago: 'efectivo'
+    },
+    {
+      id: 'pedido_demo_2',
+      usuario_id: 'user_demo',
+      comercio_id: 2,
+      comercio_nombre: 'Restaurante Sabor Casero',
+      comercio_direccion: 'Calle 85 #15-20, Usaquén',
+      comercio_telefono: '+57 302 345 6789',
+      items: [
+        {
+          pack_id: 2,
+          nombre: 'Almuerzo Ejecutivo',
+          cantidad: 1,
+          precio: 15000
+        }
+      ],
+      total: 15000,
+      estado: 'listo',
+      fecha_pedido: new Date(Date.now() - 1*60*60*1000).toISOString(),
+      fecha_recogida: new Date(Date.now() + 1*60*60*1000).toISOString(),
+      codigo_seguridad: 'B7Y4M9',
+      metodo_pago: 'tarjeta'
+    }
+  ]
+};
+
+// Simular delays de red
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+import { sendRegistrationConfirmation, sendLoginConfirmation } from './emailService';
+
+// API Mock Functions
+export const mockApiService = {
+  // Auth
+  async register(userData) {
+    await delay(800);
+    
+    console.log('Mock API - Registrando usuario:', userData);
+    
+    // Validar datos requeridos
+    if (!userData.nombre || !userData.email) {
+      return {
+        success: false,
+        message: 'Nombre y email son requeridos',
+        errors: {
+          nombre: !userData.nombre ? 'Nombre es requerido' : null,
+          email: !userData.email ? 'Email es requerido' : null
+        }
+      };
+    }
+
+    const newUser = {
+      id: 'user_' + Date.now(),
+      nombre: userData.nombre,
+      telefono: userData.telefono || '300-000-0000',
+      email: userData.email,
+      tipo: userData.tipo || 'cliente',
+      ciudad: 'Bogotá',
+      fecha_registro: new Date().toISOString()
+    };
+    
+    console.log('Mock API - Usuario creado:', newUser);
+    
+    // Guardar usuario en localStorage para persistencia
+    localStorage.setItem('tugood_user', JSON.stringify(newUser));
+    localStorage.setItem('tugood_token', 'jwt_token_' + Date.now());
+    
+    // Enviar email de confirmación de registro
+    try {
+      const emailResult = await sendRegistrationConfirmation(newUser);
+      console.log('✅ Email de confirmación de registro enviado');
+      
+      return {
+        success: true,
+        message: 'Usuario registrado exitosamente. Revisa tu email para confirmar.',
+        user: newUser,
+        token: 'jwt_token_' + Date.now(),
+        requiresVerification: true,
+        emailResult: emailResult
+      };
+    } catch (error) {
+      console.error('❌ Error enviando email de confirmación:', error);
+      
+      return {
+        success: true,
+        message: 'Usuario registrado exitosamente. Revisa tu email para confirmar.',
+        user: newUser,
+        token: 'jwt_token_' + Date.now(),
+        requiresVerification: true,
+        emailResult: { success: false, email: newUser.email, type: 'registration' }
+      };
+    }
+  },
+
+  async login(credentials) {
+    await delay(600);
+    
+    // Validar credenciales
+    if (!credentials.email || !credentials.password) {
+      return {
+        success: false,
+        message: 'Email y contraseña son requeridos',
+        errors: {
+          email: !credentials.email ? 'Email es requerido' : null,
+          password: !credentials.password ? 'Contraseña es requerida' : null
+        }
+      };
+    }
+
+    // Simular login exitoso para cualquier credencial
+    // Extraer nombre del email o usar un nombre genérico
+    const emailName = credentials.email.split('@')[0];
+    const displayName = emailName.charAt(0).toUpperCase() + emailName.slice(1);
+    
+    const user = {
+      id: 'user_' + Date.now(),
+      nombre: displayName,
+      email: credentials.email,
+      telefono: '300-000-0000',
+      tipo: 'cliente',
+      ciudad: 'Bogotá'
+    };
+    
+    // Guardar en localStorage
+    localStorage.setItem('tugood_user', JSON.stringify(user));
+    localStorage.setItem('tugood_token', 'jwt_token_demo');
+    
+    // Enviar email de confirmación de login
+    try {
+      const emailResult = await sendLoginConfirmation(user);
+      console.log('✅ Email de confirmación de login enviado');
+      
+      return {
+        success: true,
+        message: 'Login exitoso. Revisa tu email para confirmar el acceso.',
+        user: user,
+        token: 'jwt_token_demo',
+        requiresVerification: true,
+        emailResult: emailResult
+      };
+    } catch (error) {
+      console.error('❌ Error enviando email de confirmación de login:', error);
+      
+      return {
+        success: true,
+        message: 'Login exitoso. Revisa tu email para confirmar el acceso.',
+        user: user,
+        token: 'jwt_token_demo',
+        requiresVerification: true,
+        emailResult: { success: false, email: user.email, type: 'login' }
+      };
+    }
+  },
+
+  // Comercios
+  async getComercios(filtros = {}) {
+    await delay(500);
+    let comercios = [...mockApi.comercios];
+    
+    // Aplicar filtros
+    if (filtros.zona) {
+      comercios = comercios.filter(c => c.zona.toLowerCase().includes(filtros.zona.toLowerCase()));
+    }
+    if (filtros.tipo_comida) {
+      comercios = comercios.filter(c => c.tipo_comida.toLowerCase().includes(filtros.tipo_comida.toLowerCase()));
+    }
+    if (filtros.search) {
+      comercios = comercios.filter(c => 
+        c.nombre.toLowerCase().includes(filtros.search.toLowerCase()) ||
+        c.descripcion.toLowerCase().includes(filtros.search.toLowerCase())
+      );
+    }
+
+    return {
+      success: true,
+      comercios,
+      total: comercios.length
+    };
+  },
+
+  async getComercio(id) {
+    await delay(300);
+    const comercio = mockApi.comercios.find(c => c.id === parseInt(id));
+    if (!comercio) {
+      throw new Error('Comercio no encontrado');
+    }
+    return {
+      success: true,
+      comercio
+    };
+  },
+
+  // Packs
+  async getPacks(comercioId = null) {
+    await delay(400);
+    let packs = [];
+    
+    if (comercioId) {
+      const comercio = mockApi.comercios.find(c => c.id === parseInt(comercioId));
+      packs = comercio ? comercio.packs : [];
+    } else {
+      // Todos los packs
+      mockApi.comercios.forEach(comercio => {
+        packs.push(...comercio.packs.map(pack => ({
+          ...pack,
+          comercio_id: comercio.id,
+          comercio_nombre: comercio.nombre,
+          comercio_direccion: comercio.direccion,
+          comercio_telefono: comercio.telefono,
+          comercio_tipo: comercio.tipo_comida,
+          comercio_rating: comercio.calificacion
+        })));
+      });
+    }
+
+    return {
+      success: true,
+      packs,
+      total: packs.length
+    };
+  },
+
+  async getPackById(id) {
+    await delay(300);
+    let foundPack = null;
+    
+    // Buscar el pack en todos los comercios
+    for (const comercio of mockApi.comercios) {
+      const pack = comercio.packs.find(p => p.id === parseInt(id));
+      if (pack) {
+        foundPack = {
+          ...pack,
+          comercio_id: comercio.id,
+          comercio_nombre: comercio.nombre,
+          comercio_direccion: comercio.direccion,
+          comercio_telefono: comercio.telefono,
+          comercio_tipo: comercio.tipo_comida,
+          comercio_rating: comercio.calificacion,
+          comercio_zona: comercio.zona,
+          comercio_horario: comercio.horario
+        };
+        break;
+      }
+    }
+
+    if (!foundPack) {
+      throw new Error('Pack no encontrado');
+    }
+
+    return {
+      success: true,
+      pack: foundPack
+    };
+  },
+
+  // Pedidos
+  async getPedidos() {
+    await delay(600);
+    return {
+      success: true,
+      pedidos: mockApi.pedidos,
+      total: mockApi.pedidos.length
+    };
+  },
+
+  async createPedido(pedidoData) {
+    await delay(800);
+    const nuevoPedido = {
+      id: 'pedido_' + Date.now(),
+      usuario_id: 'user_demo',
+      ...pedidoData,
+      estado: 'confirmado',
+      fecha_pedido: new Date().toISOString(),
+      codigo_seguridad: Math.random().toString(36).substring(2, 8).toUpperCase()
+    };
+    
+    mockApi.pedidos.push(nuevoPedido);
+    
+    return {
+      success: true,
+      message: 'Pedido creado exitosamente',
+      pedido: nuevoPedido
+    };
+  },
+
+  // Profile
+  async getProfile() {
+    await delay(300);
+    
+    // Intentar obtener datos del usuario desde localStorage
+    const storedUser = localStorage.getItem('tugood_user');
+    if (storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        return {
+          success: true,
+          user: userData
+        };
+      } catch (e) {
+        console.error('Error parsing stored user data:', e);
+      }
+    }
+    
+    // Fallback a datos demo si no hay usuario almacenado
+    return {
+      success: true,
+      user: mockApi.usuario
+    };
+  },
+
+  async updateProfile(userData) {
+    await delay(500);
+    
+    // Actualizar datos en localStorage si existe
+    const storedUser = localStorage.getItem('tugood_user');
+    if (storedUser) {
+      try {
+        const currentUser = JSON.parse(storedUser);
+        const updatedUser = { ...currentUser, ...userData };
+        localStorage.setItem('tugood_user', JSON.stringify(updatedUser));
+        
+        return {
+          success: true,
+          message: 'Perfil actualizado exitosamente',
+          user: updatedUser
+        };
+      } catch (e) {
+        console.error('Error updating stored user data:', e);
+      }
+    }
+    
+    // Fallback: actualizar datos demo
+    Object.assign(mockApi.usuario, userData);
+    return {
+      success: true,
+      message: 'Perfil actualizado exitosamente',
+      user: mockApi.usuario
+    };
+  }
+};
