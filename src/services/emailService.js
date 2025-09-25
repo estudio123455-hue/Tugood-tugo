@@ -5,14 +5,23 @@ import emailjs from '@emailjs/browser';
 
 // Configuración de EmailJS (usar variables de entorno en producción)
 const EMAIL_CONFIG = {
-  serviceId: 'service_gc48bhw', // Service ID de EmailJS configurado
+  serviceId: process.env.REACT_APP_EMAILJS_SERVICE_ID || 'service_gc48bhw',
   templateIds: {
-    registration: 'template_registro', // Template para registro
-    login: 'template_login', // Template para login
-    otp: 'template_otp' // Template para códigos OTP
+    registration: process.env.REACT_APP_EMAILJS_TEMPLATE_ID || 'template_registro',
+    login: 'template_login',
+    otp: 'template_otp'
   },
-  publicKey: 'ZWvRswM9WLDo6u4Z9' // Public Key de EmailJS configurado
+  publicKey: process.env.REACT_APP_EMAILJS_PUBLIC_KEY || 'ZWvRswM9WLDo6u4Z9'
 };
+
+// Verificar configuración en desarrollo
+if (process.env.NODE_ENV === 'development') {
+  console.log('EmailJS Config:', {
+    serviceId: EMAIL_CONFIG.serviceId ? '✅ Configurado' : '❌ Faltante',
+    templateId: EMAIL_CONFIG.templateIds.registration ? '✅ Configurado' : '❌ Faltante',
+    publicKey: EMAIL_CONFIG.publicKey ? '✅ Configurado' : '❌ Faltante'
+  });
+}
 
 /**
  * Inicializa EmailJS con la clave pública
@@ -86,8 +95,26 @@ const sendRegistrationConfirmation = async (userData) => {
     // Guardar código en localStorage para verificación
     localStorage.setItem(`confirmation_${userData.email}`, confirmationCode);
     
-    // Mostrar código directamente al usuario
-    alert(`Código de verificación\n\nTu código es: ${confirmationCode}\n\nIngresa este código en la siguiente pantalla para completar tu registro.`);
+    // Enviar el correo usando EmailJS
+    const templateParams = {
+      to_email: userData.email,
+      to_name: userData.name || 'Usuario',
+      confirmation_code: confirmationCode,
+      device_type: deviceInfo.deviceType,
+      browser: deviceInfo.browser,
+      location: deviceInfo.ip,
+      timestamp: deviceInfo.timestamp
+    };
+
+    // Enviar el correo
+    await emailjs.send(
+      EMAIL_CONFIG.serviceId,
+      EMAIL_CONFIG.templateIds.registration,
+      templateParams,
+      EMAIL_CONFIG.publicKey
+    );
+    
+    console.log('Correo de confirmación enviado a:', userData.email);
     
     return {
       success: true,

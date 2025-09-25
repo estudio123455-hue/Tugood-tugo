@@ -1,6 +1,14 @@
 const { spawnSync, execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const dotenv = require('dotenv');
+
+// Cargar variables de entorno desde .env.local si existe
+const envPath = path.join(__dirname, '.env.local');
+if (fs.existsSync(envPath)) {
+  dotenv.config({ path: envPath });
+  console.log('Loaded environment variables from .env.local');
+}
 
 // Check Node.js version
 const nodeVersion = process.versions.node;
@@ -9,6 +17,21 @@ console.log(`Running Node.js ${nodeVersion}`);
 // Verify Node.js version is 22.x
 if (!nodeVersion.startsWith('22.')) {
   console.error('Error: This project requires Node.js 22.x');
+  process.exit(1);
+}
+
+// Verify required environment variables
+const requiredEnvVars = [
+  'REACT_APP_EMAILJS_SERVICE_ID',
+  'REACT_APP_EMAILJS_TEMPLATE_ID',
+  'REACT_APP_EMAILJS_PUBLIC_KEY'
+];
+
+const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+if (missingVars.length > 0) {
+  console.error('Error: Missing required environment variables:');
+  missingVars.forEach(varName => console.error(`- ${varName}`));
+  console.error('Please configure these variables in your Vercel project settings.');
   process.exit(1);
 }
 

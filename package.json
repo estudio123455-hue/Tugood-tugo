@@ -29,6 +29,7 @@
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-is": "^19.1.1",
     "react-router-dom": "^6.8.0",
     "react-scripts": "5.0.1",
     "react-toastify": "^11.0.5",
@@ -45,5 +46,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "dotenv": "^17.2.2"
   }
 }

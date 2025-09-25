@@ -1,5 +1,10 @@
 {
   "version": 2,
+  "env": {
+    "REACT_APP_EMAILJS_SERVICE_ID": "@emailjs_service_id",
+    "REACT_APP_EMAILJS_TEMPLATE_ID": "@emailjs_template_id",
+    "REACT_APP_EMAILJS_PUBLIC_KEY": "@emailjs_public_key"
+  },
   "builds": [
     {
       "src": "package.json",
